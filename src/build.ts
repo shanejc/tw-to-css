@@ -1,7 +1,10 @@
 import { readdir, readFile } from "fs/promises";
-import { parse } from "path";
+import { parse, dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { build, BuildOptions } from "esbuild";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
 
 const buildConfig: BuildOptions = {
   define: {
@@ -34,9 +37,7 @@ const buildConfig: BuildOptions = {
           sideEffects: false,
         }));
 
-        onResolve({ filter: /^tailwindcss$/ }, ({ path, ...options }) =>
-          resolve("tailwindcss/src", options)
-        );
+        // Let tailwindcss resolve normally - we want the real v4 APIs
 
         onResolve({ filter: /^tailwindcss\/lib/ }, ({ path, ...options }) =>
           resolve(path.replace("lib", "src"), options)
@@ -74,6 +75,33 @@ const buildConfig: BuildOptions = {
           const esm = cjs.replace("module.exports =", "export default");
           return { contents: esm };
         });
+
+        // Bundle Tailwind v4 CSS content for browser builds
+        onLoad({ filter: /tailwind-v4-css\.ts$/ }, async ({ path }) => {
+          try {
+            // Read the actual Tailwind v4 index.css
+            const tailwindPath = dirname(require.resolve("tailwindcss/package.json"));
+            const indexCSSPath = join(tailwindPath, "index.css");
+            const indexCSS = await readFile(indexCSSPath, "utf8");
+            
+            // Create the module content with escaped CSS
+            const escapedCSS = indexCSS
+              .replace(/\\/g, '\\\\')
+              .replace(/`/g, '\\`')
+              .replace(/\${/g, '\\${');
+            
+            const moduleContent = `// Auto-generated: Bundled Tailwind v4 CSS content
+export const TAILWIND_V4_CSS = \`${escapedCSS}\`;`;
+            
+            return { contents: moduleContent };
+            
+          } catch (error: any) {
+            console.warn('Could not bundle Tailwind CSS content:', error?.message || error);
+            // Return empty CSS as fallback
+            return { contents: 'export const TAILWIND_V4_CSS = "";' };
+          }
+        });
+
       },
     },
   ],
@@ -109,5 +137,29 @@ build({
   logLevel: "info",
   outdir: "dist",
   format: "iife",
+  ...buildConfig,
+});
+
+// NODE.JS - COMMONJS
+build({
+  entryPoints: { "node.cjs": "src/node.ts" },
+  bundle: true,
+  minify: true,
+  logLevel: "info",
+  outfile: "dist/node.cjs",
+  format: "cjs",
+  platform: "node",
+  ...buildConfig,
+});
+
+// NODE.JS - MODULE
+build({
+  entryPoints: { "node.mjs": "src/node.ts" },
+  bundle: true,
+  minify: true,
+  logLevel: "info",
+  outfile: "dist/node.mjs",
+  format: "esm",
+  platform: "node",
   ...buildConfig,
 });

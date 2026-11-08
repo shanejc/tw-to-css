@@ -1,9 +1,9 @@
 import { twi } from "..";
 
-export function classToCSS(HTML: string, inline: boolean = false) {
+export async function classToCSS(HTML: string, inline: boolean = false) {
   const classRegex = /class="(.*?)"/g;
 
-  let CSS = twi(HTML);
+  let CSS = await twi(HTML);
   let styleTag = "";
   if (!inline) {
     let head = HTML.match(/<head.*<\/head>/gs);
@@ -26,10 +26,10 @@ export function classToCSS(HTML: string, inline: boolean = false) {
   if (inline) {
     const elementRegex = /<.*?>/g;
     const elements = HTML.match(elementRegex);
-    elements?.forEach((element) => {
+    for (const element of elements || []) {
       const elClasses = element.match(classRegex);
       if (elClasses) {
-        let elCSS = twi(elClasses[0]);
+        let elCSS = await twi(elClasses[0]);
         const styleAttrRegex = /style=".*?"/g;
         const styleAttrMatches = element.match(styleAttrRegex);
         if (styleAttrMatches) {
@@ -40,7 +40,7 @@ export function classToCSS(HTML: string, inline: boolean = false) {
           HTML = HTML.replace(element, element.replace(">", `${styleAttr}>`));
         }
       }
-    });
+    }
   }
 
   return HTML;

@@ -3,7 +3,7 @@
     "allowSyntheticDefaultImports": true,
     "lib": ["dom", "esnext", "dom.iterable"],
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "noEmit": true,
     "strict": true,
     "stripInternal": true,

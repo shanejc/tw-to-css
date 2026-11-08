@@ -1,7 +1,7 @@
 {
   "name": "tw-to-css",
-  "version": "0.0.12",
-  "description": "Tailwindcss Inline CSS",
+  "version": "1.2.0",
+  "description": "Transform Tailwind CSS classes to pure CSS - Now with Tailwind CSS v4 support",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "unpkg": "dist/cdn.min.js",
@@ -12,10 +12,16 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs",
       "browser": "./dist/cdn.min.js"
+    },
+    "./node": {
+      "types": "./node.d.ts",
+      "import": "./dist/node.mjs",
+      "require": "./dist/node.cjs"
     }
   },
   "files": [
     "index.d.ts",
+    "node.d.ts",
     "dist/*"
   ],
   "scripts": {
@@ -35,15 +41,17 @@
     "url": "https://github.com/vinicoder/tw-to-css/issues"
   },
   "dependencies": {
-    "postcss": "8.4.31",
+    "@tailwindcss/postcss": "4.1.13",
+    "postcss": "^8.5.6",
+    "postcss-calc": "^10.1.1",
     "postcss-css-variables": "0.18.0",
-    "tailwindcss": "3.3.2"
+    "postcss-js": "4.0.1",
+    "tailwindcss": "4.1.13"
   },
   "devDependencies": {
     "@types/node": "18.11.18",
     "@types/postcss-css-variables": "0.18.0",
     "@types/react": "18.0.28",
-    "@types/tailwindcss": "3.1.0",
     "esbuild": "0.15.18",
     "tsx": "3.12.2",
     "typescript": "4.9.4"
